@@ -20,7 +20,7 @@
           Welcome {{authService.decodedText?.unique_name | titlecase}}
         </a>
         <div class="dropdown-menu" *dropdownMenu>
-          <a class="dropdown-item"><i class="fa fa-user"></i> Edit Profile</a>
+          <a class="dropdown-item" [routerLink]="['/member/edit']" ><i class="fa fa-user"></i> Edit Profile</a>
           <div class="dropdown-devider"></div>
           <a class="dropdown-item fa-signout" (click)="logout()"><i class="fa fa-signout"></i>Logout</a>
         </div>
