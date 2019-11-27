@@ -5,6 +5,7 @@ import { User } from '../_models/user';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { PaginatedResult } from '../_models/Pagination';
 import { map } from 'rxjs/operators';
+import { Message } from '../_models/message';
 
 @Injectable({
   providedIn: 'root'
@@ -23,6 +24,7 @@ constructor(private http: HttpClient) { }
       params = params.append('pageNumber', page);
       params = params.append('pageSize', itemsPerPage);
     }
+
     if (userParams != null) {
       params = params.append('gender', userParams.gender);
       params = params.append('minAge', userParams.minAge);
@@ -42,7 +44,26 @@ constructor(private http: HttpClient) { }
     .pipe(
       map(response => {
         paginatedResult.result = response.body;
-        console.log(response);
+        if (response.headers.get('Pagination') != null) {
+          paginatedResult.pagination = JSON.parse(response.headers.get('Pagination'));
+        }
+        return paginatedResult;
+      })
+    );
+  }
+
+  getMessages(id: number, page?, itemsPerPage?, messageContainer?) {
+    const paginatedResult: PaginatedResult<Message[]> = new PaginatedResult<Message[]>();
+    let params = new HttpParams();
+    params = params.append('messageContainer', messageContainer);
+    if (page != null && itemsPerPage != null) {
+      params = params.append('pageNumber', page);
+      params = params.append('pageSize', itemsPerPage);
+    }
+
+    return this.http.get<Message[]>(this.baseUrl + id + '/message/', {observe: 'response', params}).pipe(
+      map(response => {
+        paginatedResult.result = response.body;
         if (response.headers.get('Pagination') != null) {
           paginatedResult.pagination = JSON.parse(response.headers.get('Pagination'));
         }
@@ -69,5 +90,21 @@ constructor(private http: HttpClient) { }
 
   sendLike(userId: number, recipientId: number) {
     return this.http.post(this.baseUrl + userId + '/likes/' + recipientId, {});
+  }
+
+  getMessageThread(id: number, recipientId: number) {
+    return this.http.get<Message[]>(this.baseUrl + id + '/message/thread/' + recipientId);
+  }
+
+  sendMessage(id: number, message: Message) {
+    return this.http.post(this.baseUrl + id + '/message/', message);
+  }
+
+  deleteMessage(id: number, userId: number) {
+    return this.http.post(this.baseUrl + userId + '/message/' + id, {});
+  }
+
+  markAsRead(userId: number, id: number) {
+    return this.http.post(this.baseUrl + userId + '/message/' + id + '/read', {}).subscribe();
   }
 }
